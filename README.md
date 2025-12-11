@@ -102,7 +102,7 @@ docker-lab/
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/khoalololo/docker-springboot-lab
 cd docker-lab
 ```
 
@@ -440,18 +440,6 @@ docker compose stop api
 - Spring Boot uses embedded Tomcat by default
 - Database data persists in Docker volumes (unless removed with `-v`)
 
-## 🤝 Contributing
-
-1. Create a new branch
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
-
-## 📄 License
-
-This project is for educational purposes.
-
-## 👨‍💻 Author
 
 Created as part of Docker learning lab
 
