@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik_net
+
+  webA:
+    image: nginx:alpine
+    container_name: product-service
+    volumes:
+      - ./webA:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webA.rule=Host(`localhost`) && PathPrefix(`/product`)"
+      - "traefik.http.routers.webA.entrypoints=web"
+      - "traefik.http.middlewares.webA-stripprefix.stripprefix.prefixes=/product"
+      - "traefik.http.routers.webA.middlewares=webA-stripprefix"
+    networks:
+      - traefik_net
+
+  webB:
+    image: nginx:alpine
+    container_name: service-dept
+    volumes:
+      - ./webB:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webB.rule=Host(`localhost`) && PathPrefix(`/service`)"
+      - "traefik.http.routers.webB.entrypoints=web"
+      - "traefik.http.middlewares.webB-stripprefix.stripprefix.prefixes=/service"
+      - "traefik.http.routers.webB.middlewares=webB-stripprefix"
+    networks:
+      - traefik_net
+
+networks:
+  traefik_net:
+    driver: bridge

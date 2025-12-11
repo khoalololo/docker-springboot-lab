@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Lab Dashboard - Traefik Edition</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .icon {
+            font-size: 40px;
+        }
+        .card h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: opacity 0.3s;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .route-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .traefik-badge {
+            background: #37cdbe;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Docker Lab Dashboard</h1>
+    <p>Complete Stack with Traefik Reverse Proxy</p>
+</div>
+
+<div class="container">
+    <div class="grid">
+        <!-- Traefik -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Traefik Gateway</h2>
+            </div>
+            <span class="status">✓ Running</span>
+            <p>Reverse proxy and load balancer managing all routing with automatic service discovery.</p>
+            <a href="http://localhost:8090" class="btn" target="_blank">Dashboard</a>
+            <div class="route-info">
+                Port: 80 (HTTP)<br>
+                Dashboard: 8090
+            </div>
+        </div>
+
+        <!-- Spring Boot API -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Spring Boot API</h2>
+            </div>
+            <span class="status">✓ Running</span>
+            <span class="traefik-badge">via Traefik</span>
+            <p>RESTful API with employee management. Routed through Traefik reverse proxy.</p>
+            <a href="/api/employees" class="btn">Employees</a>
+            <a href="/api/employees/1" class="btn">Employee #1</a>
+            <div class="route-info">
+                Route: /api/*<br>
+                Backend: springboot-api:8080
+            </div>
+        </div>
+
+        <!-- PostgreSQL -->
+        <div class="card">
+            <div class="card-header">
+                <h2>PostgreSQL Database</h2>
+            </div>
+            <span class="status">✓ Running</span>
+            <p>Custom PostgreSQL with pre-loaded HR data. Protected with Docker Secrets.</p>
+            <div class="route-info">
+                Database: humanresource<br>
+                Tables: employees, departments<br>
+                Security: Docker Secrets
+            </div>
+        </div>
+
+        <!-- Adminer -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Adminer</h2>
+            </div>
+            <span class="status">✓ Running</span>
+            <span class="traefik-badge">via Traefik</span>
+            <p>Database management interface accessible through Traefik.</p>
+            <a href="/adminer/" class="btn">Open Adminer</a>
+            <div class="route-info">
+                Route: /adminer/<br>
+                Server: postgres<br>
+                User: postgres
+                Password: abc123-
+                Database: humanresource
+            </div>
+        </div>
+
+        <!-- Product Service -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Product Service</h2>
+            </div>
+            <span class="status">✓ Running</span>
+            <span class="traefik-badge">via Traefik</span>
+            <p>Product catalog service (Nginx A). Demonstrates Traefik path-based routing.</p>
+            <a href="/product" class="btn">View Products</a>
+            <div class="route-info">
+                Route: /product<br>
+                Backend: nginx:alpine
+            </div>
+        </div>
+
+        <!-- Service Department -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Service Department</h2>
+            </div>
+            <span class="status">✓ Running</span>
+            <span class="traefik-badge">via Traefik</span>
+            <p>Customer service portal (Nginx B). Another example of Traefik routing.</p>
+            <a href="/service" class="btn">Support Portal</a>
+            <div class="route-info">
+                Route: /service<br>
+                Backend: nginx:alpine
+            </div>
+        </div>
+
+        <!-- Architecture Overview -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-header">
+                <h2>Architecture Overview</h2>
+            </div>
+            <p style="font-size: 1.1em; margin-bottom: 30px;">
+                This lab demonstrates a complete microservices architecture with:
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 10px;">Traefik</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>Automatic service discovery</li>
+                        <li>Path-based routing</li>
+                        <li>Load balancing</li>
+                        <li>SSL termination ready</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 10px;">Backend</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>Spring Boot 3.2</li>
+                        <li>JPA/Hibernate</li>
+                        <li>PostgreSQL</li>
+                        <li>RESTful API</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 10px;">Security</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>Docker Secrets</li>
+                        <li>Network isolation</li>
+                        <li>No exposed passwords</li>
+                        <li>Production-ready</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 10px;">Docker</h3>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>Multi-stage builds</li>
+                        <li>Docker Compose</li>
+                        <li>Health checks</li>
+                        <li>Auto-restart</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1; background: #1f2937; color: white;">
+            <h2 style="color: white; margin-bottom: 20px;">Quick Commands</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                <div>
+                    <h4 style="color: #10b981; margin-bottom: 10px;">View Logs</h4>
+                    <code style="background: #374151; padding: 10px; display: block; border-radius: 5px;">
+                        docker logs -f springboot-api
+                    </code>
+                </div>
+                <div>
+                    <h4 style="color: #10b981; margin-bottom: 10px;">Test API</h4>
+                    <code style="background: #374151; padding: 10px; display: block; border-radius: 5px;">
+                        curl http://localhost/api/employees
+                    </code>
+                </div>
+                <div>
+                    <h4 style="color: #10b981; margin-bottom: 10px;">Restart Services</h4>
+                    <code style="background: #374151; padding: 10px; display: block; border-radius: 5px;">
+                        docker compose restart
+                    </code>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_PASSWORD: abc123-
+
+  adminer:
+    image: adminer
+    ports:
+      - "8082:8080"

@@ -1,0 +1,125 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik-gateway
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8090:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - share_net
+    restart: unless-stopped
+
+  postgres:
+    image: postgres-custom
+    container_name: postgres-db
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: humanresource
+    networks:
+      - share_net
+    secrets:
+      - db_password
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d humanresource" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  api:
+    image: springboot-demo
+    container_name: springboot-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_PASSWORD_FILE: /run/secrets/db_password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/humanresource
+      SPRING_DATASOURCE_USERNAME: postgres
+    secrets:
+      - db_password
+    networks:
+      - share_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+    restart: unless-stopped
+
+  adminer:
+    image: adminer
+    container_name: adminer-ui
+    networks:
+      - share_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`localhost`) && PathPrefix(`/adminer`)"
+      - "traefik.http.routers.adminer.entrypoints=web"
+      - "traefik.http.middlewares.adminer-stripprefix.stripprefix.prefixes=/adminer"
+      - "traefik.http.routers.adminer.middlewares=adminer-stripprefix"
+    restart: unless-stopped
+
+  # Product Service (Nginx A)
+  product:
+    image: nginx:alpine
+    container_name: product-service
+    volumes:
+      - ./nginx/product:/usr/share/nginx/html:ro
+    networks:
+      - share_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.product.rule=Host(`localhost`) && PathPrefix(`/product`)"
+      - "traefik.http.routers.product.entrypoints=web"
+      - "traefik.http.middlewares.product-stripprefix.stripprefix.prefixes=/product"
+      - "traefik.http.routers.product.middlewares=product-stripprefix"
+    restart: unless-stopped
+
+  # Service Department (Nginx B)
+  service:
+    image: nginx:alpine
+    container_name: service-dept
+    volumes:
+      - ./nginx/service:/usr/share/nginx/html:ro
+    networks:
+      - share_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.service.rule=Host(`localhost`) && PathPrefix(`/service`)"
+      - "traefik.http.routers.service.entrypoints=web"
+      - "traefik.http.middlewares.service-stripprefix.stripprefix.prefixes=/service"
+      - "traefik.http.routers.service.middlewares=service-stripprefix"
+    restart: unless-stopped
+
+  frontend:
+    image: nginx:alpine
+    container_name: frontend-app
+    volumes:
+      - ./nginx/frontend:/usr/share/nginx/html:ro
+    networks:
+      - share_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.priority=1"
+    restart: unless-stopped
+
+networks:
+  share_net:
+    driver: bridge
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
